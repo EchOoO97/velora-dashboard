@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velora | Loyalty Management Platform</title>
+<style>
+:root{--bg:#f4f7fb;--surface:#fff;--surface2:#eef4f7;--text:#183548;--muted:#778b9c;--line:#e2eaf0;--brand:#218b9b;--brand2:#15566a;--green:#15966a;--shadow:0 8px 28px rgba(25,55,75,.06)}
+[data-theme="dark"]{--bg:#101c2b;--surface:#1a2b3a;--surface2:#263a4a;--text:#edf4f8;--muted:#9db0bf;--line:#2b4051;--brand:#55b9c2;--brand2:#2c7f8b;--green:#48c99a;--shadow:0 8px 28px rgba(0,0,0,.16)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI",Tahoma,Arial,sans-serif;transition:.2s}
+button{font:inherit;cursor:pointer;border:0}.app{max-width:1500px;margin:auto;padding:22px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(145deg,#17475a,#238fa0);color:white;display:grid;place-items:center;font-size:25px;font-weight:800;box-shadow:var(--shadow)}.brand h1{font-size:23px;margin:0;letter-spacing:.3px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:1.5px;margin-top:3px}.tools{display:flex;gap:9px;align-items:center}.iconbtn,.langbtn{background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:11px;padding:10px 13px}.avatar{width:38px;height:38px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-weight:700}.layout{display:grid;grid-template-columns:245px minmax(0,1fr);gap:20px}.sidebar,.card{background:var(--surface);border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow)}.sidebar{padding:16px;height:max-content;position:sticky;top:16px}.side-label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin:8px 10px 12px}.nav{display:flex;flex-direction:column;gap:5px}.nav button{background:transparent;color:var(--muted);text-align:start;padding:12px;border-radius:11px;display:flex;align-items:center;gap:12px;font-size:14px}.nav button:hover{background:var(--surface2);color:var(--text)}.nav button.active{background:var(--brand2);color:#fff}.nav .ico{width:20px;text-align:center;font-size:17px}.side-bottom{border-top:1px solid var(--line);margin-top:18px;padding:16px 8px 2px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between}.main{min-width:0}.welcome{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 22px}.welcome h2{font-size:25px;margin:0 0 6px}.welcome p{margin:0;color:var(--muted);font-size:13px}.status{font-size:11px;color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent);padding:8px 12px;border-radius:30px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}.stat{padding:18px}.stat-head{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}.stat-icon{width:36px;height:36px;border-radius:11px;background:var(--surface2);display:grid;place-items:center;color:var(--brand);font-size:18px}.stat strong{display:block;font-size:27px;margin:13px 0 7px;letter-spacing:-.5px}.growth{font-size:11px;color:var(--green)}.content-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr);gap:16px;margin-bottom:16px}.card{padding:19px}.card-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}.card-title h3{font-size:15px;margin:0}.muted{color:var(--muted);font-size:12px}.select{border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);padding:8px;font-size:11px}.chart-total{display:flex;align-items:end;justify-content:space-between;margin-bottom:10px}.chart-total strong{font-size:26px}.chart-wrap{height:180px;position:relative}.chart-wrap svg{width:100%;height:100%;overflow:visible}.gridline{stroke:var(--line);stroke-width:1}.chart-line{fill:none;stroke:var(--brand);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}.chart-area{fill:var(--brand);opacity:.10}.chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:8px}.mini-list{display:flex;flex-direction:column;gap:16px}.mini-row{display:flex;align-items:center;justify-content:space-between;gap:8px}.store-left{display:flex;align-items:center;gap:10px}.store-logo{width:36px;height:36px;border-radius:11px;background:var(--surface2);display:grid;place-items:center;color:var(--brand);font-weight:700}.store-name{font-size:12px;font-weight:650}.store-meta{font-size:10px;color:var(--muted);margin-top:4px}.pill{font-size:10px;padding:5px 8px;border-radius:20px;background:var(--surface2);color:var(--muted)}.table-card{padding:0;overflow:hidden}.table-card .card-title{padding:19px 19px 0}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:580px}th,td{text-align:start;padding:13px 18px;border-bottom:1px solid var(--line);font-size:12px}th{color:var(--muted);font-weight:600;font-size:10px;background:color-mix(in srgb,var(--surface2) 55%,transparent)}td{color:var(--text)}.status-pill{font-size:10px;color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent);padding:5px 9px;border-radius:20px}.status-pill.pending{color:#c58b27;background:#c58b2717}.points{color:var(--brand);font-weight:700}.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.quick button{background:var(--surface2);color:var(--text);padding:13px 10px;border-radius:12px;text-align:start;font-size:11px;display:flex;align-items:center;gap:9px}.quick button span{font-size:17px;color:var(--brand)}.page-placeholder{padding:55px 20px;text-align:center}.page-placeholder .big{font-size:40px;margin-bottom:12px}.page-placeholder h3{margin:0 0 8px}.page-placeholder p{color:var(--muted);font-size:13px}.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);background:#163d4e;color:white;padding:12px 18px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;box-shadow:var(--shadow);z-index:5}.toast.show{opacity:1;transform:translate(-50%,0)}
+[dir="ltr"] .nav button{text-align:left}
+@media(max-width:1000px){.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:205px minmax(0,1fr)}.content-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.app{padding:13px}.layout{grid-template-columns:1fr}.sidebar{position:static;padding:10px}.nav{display:grid;grid-template-columns:repeat(2,1fr)}.side-label,.side-bottom{display:none}.welcome h2{font-size:20px}.stats{gap:9px}.stat{padding:13px}.stat strong{font-size:22px}.quick{grid-template-columns:repeat(2,1fr)}.topbar{margin-bottom:15px}.brand h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo">V</div><div><h1>Velora</h1><small>LOYALTY PLATFORM</small></div></div>
+    <div class="tools"><button class="langbtn" id="langBtn">English</button><button class="iconbtn" id="themeBtn" aria-label="Toggle theme">☾</button><div class="avatar">A</div></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="side-label" data-i18n="mainMenu">القائمة الرئيسية</div>
+      <nav class="nav" id="nav">
+        <button class="active" data-page="dashboard"><span class="ico">▦</span><span data-i18n="dashboard">الرئيسية</span></button>
+        <button data-page="stores"><span class="ico">▣</span><span data-i18n="stores">المحلات</span></button>
+        <button data-page="customers"><span class="ico">♙</span><span data-i18n="customers">العملاء</span></button>
+        <button data-page="programs"><span class="ico">✧</span><span data-i18n="programs">برامج الولاء</span></button>
+        <button data-page="wallet"><span class="ico">▤</span><span data-i18n="wallet">الكروت الرقمية</span></button>
+        <button data-page="transactions"><span class="ico">⇄</span><span data-i18n="transactions">المعاملات</span></button>
+        <button data-page="rewards"><span class="ico">♜</span><span data-i18n="rewards">المكافآت</span></button>
+        <button data-page="reports"><span class="ico">▥</span><span data-i18n="reports">التقارير</span></button>
+        <button data-page="subscriptions"><span class="ico">▱</span><span data-i18n="subscriptions">الاشتراكات</span></button>
+        <button data-page="settings"><span class="ico">⚙</span><span data-i18n="settings">الإعدادات</span></button>
+      </nav>
+      <div class="side-bottom"><span>Velora © 2026</span><span>v0.1.0</span></div>
+    </aside>
+    <main class="main" id="main">
+      <section class="welcome"><div><h2 data-i18n="welcome">أهلاً بك في Velora</h2><p data-i18n="subtitle">إليك ملخص أداء منصتك اليوم.</p></div><div class="status" data-i18n="online">● النظام يعمل</div></section>
+      <section class="stats">
+        <article class="card stat"><div class="stat-head"><span data-i18n="totalStores">إجمالي المحلات</span><span class="stat-icon">▣</span></div><strong>128</strong><div class="growth">↗ 12.5% <span data-i18n="growth">مقارنة بالفترة السابقة</span></div></article>
+        <article class="card stat"><div class="stat-head"><span data-i18n="totalCustomers">إجمالي العملاء</span><span class="stat-icon">♙</span></div><strong>8,549</strong><div class="growth">↗ 18.2% <span data-i18n="growth">مقارنة بالفترة السابقة</span></div></article>
+        <article class="card stat"><div class="stat-head"><span data-i18n="activeCards">الكروت النشطة</span><span class="stat-icon">▤</span></div><strong>6,320</strong><div class="growth">↗ 9.4% <span data-i18n="growth">مقارنة بالفترة السابقة</span></div></article>
+        <article class="card stat"><div class="stat-head"><span data-i18n="pointsIssued">النقاط الممنوحة</span><span class="stat-icon">✧</span></div><strong>245.8K</strong><div class="growth">↗ 22.1% <span data-i18n="growth">مقارنة بالفترة السابقة</span></div></article>
+      </section>
+      <section class="content-grid">
+        <article class="card">
+          <div class="card-title"><h3 data-i18n="performance">نظرة على الأداء</h3><select class="select" id="period"><option value="7" data-i18n="last7">آخر 7 أيام</option><option value="30" data-i18n="last30">آخر 30 يوم</option><option value="365" data-i18n="last12">آخر 12 شهر</option></select></div>
+          <div class="chart-total"><div><div class="muted" data-i18n="sales">إجمالي المبيعات</div><strong>284,650 <small style="font-size:12px;color:var(--muted)">EGP</small></strong></div><span class="growth">↗ 18.6%</span></div>
+          <div class="chart-wrap"><svg viewBox="0 0 600 180" preserveAspectRatio="none" aria-label="Sales chart"><path class="gridline" d="M0 30H600 M0 75H600 M0 120H600 M0 165H600"/><path class="chart-area" d="M0 135 L85 112 L170 124 L255 72 L340 91 L425 49 L510 64 L600 17 L600 180 L0 180Z"/><path class="chart-line" d="M0 135 L85 112 L170 124 L255 72 L340 91 L425 49 L510 64 L600 17"/></svg></div>
+          <div class="chart-labels"><span>Sat</span><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+        </article>
+        <article class="card">
+          <div class="card-title"><h3 data-i18n="latestStores">أحدث المحلات</h3><span class="muted" data-i18n="all">الكل</span></div>
+          <div class="mini-list">
+            <div class="mini-row"><div class="store-left"><div class="store-logo">N</div><div><div class="store-name">Nova Fashion</div><div class="store-meta">Fashion · Alexandria</div></div></div><span class="pill">Active</span></div>
+            <div class="mini-row"><div class="store-left"><div class="store-logo">C</div><div><div class="store-name">Coffee Corner</div><div class="store-meta">Cafe · Cairo</div></div></div><span class="pill">Active</span></div>
+            <div class="mini-row"><div class="store-left"><div class="store-logo">U</div><div><div class="store-name">Urban Store</div><div class="store-meta">Retail · Giza</div></div></div><span class="pill">Active</span></div>
+            <div class="mini-row"><div class="store-left"><div class="store-logo">B</div><div><div class="store-name">Bloom Beauty</div><div class="store-meta">Beauty · Alexandria</div></div></div><span class="pill">Pending</span></div>
+          </div>
+        </article>
+      </section>
+      <section class="card table-card" style="margin-bottom:16px">
+        <div class="card-title"><h3 data-i18n="recentTransactions">أحدث المعاملات</h3><button class="select" data-action="transactions" data-i18n="viewAll">عرض الكل</button></div>
+        <div class="table-wrap"><table><thead><tr><th data-i18n="store">المحل</th><th data-i18n="customer">العميل</th><th data-i18n="purchase">قيمة الشراء</th><th data-i18n="points">النقاط</th><th data-i18n="status">الحالة</th></tr></thead><tbody>
+          <tr><td>Nova Fashion</td><td>أحمد محمد</td><td>1,250 EGP</td><td class="points">+125</td><td><span class="status-pill" data-i18n="completed">مكتملة</span></td></tr>
+          <tr><td>Coffee Corner</td><td>سارة علي</td><td>320 EGP</td><td class="points">+32</td><td><span class="status-pill" data-i18n="completed">مكتملة</span></td></tr>
+          <tr><td>Urban Store</td><td>محمود حسن</td><td>850 EGP</td><td class="points">+85</td><td><span class="status-pill pending" data-i18n="pending">معلقة</span></td></tr>
+          <tr><td>Nova Fashion</td><td>منى خالد</td><td>540 EGP</td><td class="points">+54</td><td><span class="status-pill" data-i18n="completed">مكتملة</span></td></tr>
+        </tbody></table></div>
+      </section>
+      <section class="card"><div class="card-title"><h3 data-i18n="quickActions">إجراءات سريعة</h3></div><div class="quick">
+        <button data-action="stores"><span>＋</span><span data-i18n="addStore">إضافة محل جديد</span></button>
+        <button data-action="customers"><span>♙</span><span data-i18n="addCustomer">إضافة عميل</span></button>
+        <button data-action="programs"><span>✧</span><span data-i18n="createProgram">إنشاء برنامج ولاء</span></button>
+        <button data-action="wallet"><span>▤</span><span data-i18n="issueCard">إصدار كارت</span></button>
+      </div></section>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast">This section is coming soon</div>
+<script>
+const translations={
+ar:{mainMenu:"القائمة الرئيسية",dashboard:"الرئيسية",stores:"المحلات",customers:"العملاء",programs:"برامج الولاء",wallet:"الكروت الرقمية",transactions:"المعاملات",rewards:"المكافآت",reports:"التقارير",subscriptions:"الاشتراكات",settings:"الإعدادات",welcome:"أهلاً بك في Velora",subtitle:"إليك ملخص أداء منصتك اليوم.",online:"● النظام يعمل",totalStores:"إجمالي المحلات",totalCustomers:"إجمالي العملاء",activeCards:"الكروت النشطة",pointsIssued:"النقاط الممنوحة",growth:"مقارنة بالفترة السابقة",performance:"نظرة على الأداء",last7:"آخر 7 أيام",last30:"آخر 30 يوم",last12:"آخر 12 شهر",sales:"إجمالي المبيعات",latestStores:"أحدث المحلات",all:"الكل",recentTransactions:"أحدث المعاملات",store:"المحل",customer:"العميل",purchase:"قيمة الشراء",points:"النقاط",status:"الحالة",completed:"مكتملة",pending:"معلقة",viewAll:"عرض الكل",quickActions:"إجراءات سريعة",addStore:"إضافة محل جديد",addCustomer:"إضافة عميل",createProgram:"إنشاء برنامج ولاء",issueCard:"إصدار كارت",coming:"هذا القسم قيد التطوير"},
+en:{mainMenu:"MAIN MENU",dashboard:"Dashboard",stores:"Stores",customers:"Customers",programs:"Loyalty Programs",wallet:"Wallet Cards",transactions:"Transactions",rewards:"Rewards",reports:"Reports",subscriptions:"Subscriptions",settings:"Settings",welcome:"Welcome to Velora",subtitle:"Here is your platform performance today.",online:"● System operational",totalStores:"Total Stores",totalCustomers:"Total Customers",activeCards:"Active Cards",pointsIssued:"Points Issued",growth:"vs previous period",performance:"Performance Overview",last7:"Last 7 days",last30:"Last 30 days",last12:"Last 12 months",sales:"Total Sales",latestStores:"Latest Stores",all:"All",recentTransactions:"Recent Transactions",store:"Store",customer:"Customer",purchase:"Purchase Value",points:"Points",status:"Status",completed:"Completed",pending:"Pending",viewAll:"View all",quickActions:"Quick Actions",addStore:"Add New Store",addCustomer:"Add Customer",createProgram:"Create Loyalty Program",issueCard:"Issue a Card",coming:"This section is under development"}
+};
+let lang="ar";
+const $=(s)=>document.querySelector(s);
+function setLanguage(next){lang=next;document.documentElement.lang=next;document.documentElement.dir=next==="ar"?"rtl":"ltr";document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.dataset.i18n;if(translations[next][k])el.textContent=translations[next][k]});$("#langBtn").textContent=next==="ar"?"English":"العربية"}
+$("#langBtn").addEventListener("click",()=>setLanguage(lang==="ar"?"en":"ar"));
+$("#themeBtn").addEventListener("click",()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";$("#themeBtn").textContent=dark?"☀":"☾"});
+$("#nav").addEventListener("click",e=>{const b=e.target.closest("button[data-page]");if(!b)return;document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x===b));if(b.dataset.page!=="dashboard")showToast(translations[lang].coming)});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-action]");if(!b)return;const target=document.querySelector(`[data-page="${b.dataset.action}"]`);if(target)target.click();});
+$("#period").addEventListener("change",e=>{const paths={7:"M0 135 L85 112 L170 124 L255 72 L340 91 L425 49 L510 64 L600 17",30:"M0 148 L85 128 L170 95 L255 112 L340 72 L425 83 L510 42 L600 17",365:"M0 155 L85 145 L170 130 L255 105 L340 115 L425 65 L510 40 L600 12"};const p=paths[e.target.value];$(".chart-line").setAttribute("d",p);$(".chart-area").setAttribute("d",p+" L600 180 L0 180Z")});
+let toastTimer;function showToast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2200)}
+</script>
+</body>
+</html>
