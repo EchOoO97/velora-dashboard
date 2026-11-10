@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velora | Cashier POS</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+
+:root{--gold:#ffd000;--bg:#0c0d0f;--panel:#17191d;--muted:#aeb3bd;--line:#343840;--white:#f7f7f5}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 0%,#292319 0%,#111214 42%,#090a0b 100%);color:var(--white);font-family:Cairo,sans-serif;padding:28px 18px}
+.wrap{max-width:720px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;margin:0 0 22px}
+.brand{font-size:21px;font-weight:800;letter-spacing:1px;color:#fff}
+.sub{color:#b9bdc5;font-size:12px}
+.card{background:#17191d;border:1px solid #353941;border-radius:20px;padding:22px;margin:15px 0;box-shadow:0 12px 35px #0003}
+.step{color:#d5b76f;font-weight:700;font-size:12px;letter-spacing:.4px}
+.title{font-size:21px;font-weight:800;margin:5px 0 10px}
+button,.filebtn{font:700 14px Cairo;border:0;border-radius:12px;padding:12px 19px;cursor:pointer;background:#ffd000;color:#171717}
+button.secondary{background:#25282e;color:#fff;border:1px solid #42464f}
+button:disabled{opacity:.45;cursor:not-allowed}
+input{font:600 14px Cairo;color:#fff;background:#111317;border:1px solid #3b3f48;border-radius:11px;padding:12px;width:100%;margin:5px 0 12px}
+label{display:block;color:#d0d2d7;font-size:13px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#reader{max-width:440px;margin:14px auto;border-radius:14px;overflow:hidden}
+#reader video{border-radius:12px}
+.customer{display:none;border:1px solid #766333;background:#242116;border-radius:14px;padding:15px;margin-top:15px}
+.customer strong{font-size:18px}
+.points{font-size:28px;color:#ffd000;font-weight:800}
+.status{color:var(--muted);font-size:13px;margin-top:9px;white-space:pre-wrap}
+.good{color:#83d6a3}.bad{color:#ff8f8f}
+#preview{max-width:100%;max-height:260px;display:none;margin:12px auto;border-radius:12px}
+#ocrText{white-space:pre-wrap;background:#101216;border:1px solid var(--line);border-radius:10px;padding:12px;max-height:170px;overflow:auto;font-size:12px;color:#b8bbc2}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.hidden{display:none}
+.note{font-size:12px;color:#aeb3bd;line-height:1.9}
+.divider{height:1px;background:#30343b;margin:17px 0}
+#invoiceFile{padding:16px;border:1px dashed #766a4d;background:#1c1e22}
+#reviewReady{margin-top:8px}
+#summary{line-height:2}
+@media(max-width:600px){body{padding:15px 11px}.row{grid-template-columns:1fr}.card{padding:17px}.top{align-items:flex-start;gap:10px;flex-direction:row}.title{font-size:19px}}
+
+
+.invoice-card{padding:24px 19px 18px}
+.invoice-card .step{text-align:right;color:#d7b65f;font-size:12px;font-weight:800;letter-spacing:.5px}
+.invoice-card .title{text-align:right;font-size:22px;margin:7px 0 10px}
+.invoice-intro{text-align:right;margin:0 0 18px}
+.invoice-upload{border:1px dashed #786c50;border-radius:16px;background:#1b1d21;min-height:195px;padding:25px 18px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.upload-icon{font-size:30px;line-height:1;margin-bottom:15px;color:#fff}
+.upload-title{font-size:16px;font-weight:800;color:#fff}
+.upload-hint{font-size:13px;color:#aeb3bd;margin:4px 0 8px}
+.upload-actions{justify-content:center;flex-direction:row-reverse;gap:10px}
+.upload-actions button{min-width:125px}
+.file-hidden{display:none!important}
+.ocr-actions{justify-content:center;margin:16px 0}
+.ocr-actions button{min-width:162px}
+.progress-track{height:7px;border-radius:10px;background:#35383e;overflow:hidden;margin-top:15px}
+.progress-fill{height:100%;width:0;background:#ffd000;transition:width .25s}
+.invoice-status{text-align:right;margin-top:10px;font-size:12px}
+.invoice-card #preview{max-width:100%;max-height:230px;object-fit:contain;margin:14px auto 0}
+.invoice-card #ocrStatus.good{color:#9bd9ae}
+@media(max-width:560px){.invoice-card{padding:20px 14px}.invoice-card .title{font-size:19px}.invoice-upload{min-height:185px}.upload-actions{flex-wrap:wrap}.upload-actions button{min-width:120px}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div><div class="brand">VELORA</div><div class="sub">نقطة البيع الذكية · نظام الولاء</div></div><div class="sub">CASHIER POS · VELORA</div></div>
+
+  <section class="card">
+    <div class="step">01 — CUSTOMER</div>
+    <div class="title">مسح QR العميل</div>
+    <p class="note">وجّه كاميرا الجهاز إلى كود بطاقة العميل. تقدر كمان تلصق رابط البطاقة أو الـ Token يدويًا.</p>
+    <div id="reader"></div>
+    <div class="actions">
+      <button id="startScan">تشغيل الكاميرا والسكان</button>
+      <button class="secondary" id="stopScan" disabled>إيقاف الكاميرا</button>
+    </div>
+    <div class="divider"></div>
+    <label for="tokenInput">رابط البطاقة أو Public Token</label>
+    <input id="tokenInput" placeholder="الصق رابط البطاقة أو التوكن هنا">
+    <button class="secondary" id="loadCustomer">تحميل بيانات العميل</button>
+    <div id="customerBox" class="customer">
+      <div class="sub">العميل المحدد</div>
+      <strong id="customerName">—</strong>
+      <div class="sub" id="storeName">—</div>
+      <div class="points"><span id="points">0</span> <small style="font-size:13px">نقطة</small></div>
+      <div class="sub" id="serial">—</div>
+    </div>
+    <div id="customerStatus" class="status">لم يتم اختيار عميل بعد.</div>
+  </section>
+
+  <section class="card invoice-card">
+    <div class="step">INVOICE OCR — 02</div>
+    <div class="title">تصوير الفاتورة واستخراج الإجمالي</div>
+    <p class="note invoice-intro">يدعم صور فواتير الكاشير الحرارية وفواتير A4. الأفضل تكون الصورة واضحة ومباشرة.</p>
+
+    <div class="invoice-upload" id="invoiceUpload">
+      <div class="upload-icon">▧</div>
+      <div class="upload-title">اختار صورة الفاتورة</div>
+      <div class="upload-hint">خلّي الصورة مستقيمة وواضحة وبإضاءة جيدة</div>
+      <div class="actions upload-actions">
+        <button type="button" id="cameraButton">📷 تصوير بالكاميرا</button>
+        <button type="button" class="secondary" id="chooseButton">اختيار صورة</button>
+      </div>
+      <input id="invoiceFile" class="file-hidden" type="file" accept="image/*">
+      <img id="preview" alt="Invoice preview">
+    </div>
+
+    <div class="actions ocr-actions">
+      <button id="readInvoice" disabled>ابدأ قراءة الفاتورة OCR</button>
+      <button class="secondary" id="resetInvoice" style="display:none">مسح الصورة</button>
+    </div>
+    <div class="progress-track"><div id="ocrProgress" class="progress-fill"></div></div>
+    <div id="ocrStatus" class="status invoice-status">في انتظار صورة الفاتورة.</div>
+    <div id="review" class="hidden">
+      <div class="divider"></div>
+      <div class="row">
+        <div><label for="invoiceNumber">رقم الفاتورة</label><input id="invoiceNumber" placeholder="رقم الفاتورة"></div>
+        <div><label for="invoiceDate">تاريخ الفاتورة</label><input id="invoiceDate" placeholder="التاريخ"></div>
+      </div>
+      <label for="invoiceTotal">إجمالي الفاتورة (جنيه)</label>
+      <input id="invoiceTotal" type="number" min="0.01" step="0.01" placeholder="0.00">
+      <label>النص المستخرج من الصورة</label>
+      <div id="ocrText"></div>
+      <p class="note">راجع الرقم والتاريخ والإجمالي يدويًا. قراءة OCR مساعدة وقد تخطئ، خصوصًا في الإيصالات الحرارية.</p>
+      <button id="reviewReady" disabled>تأكيد المراجعة المبدئية</button>
+      <div id="reviewStatus" class="status"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="step">03 — APPROVAL</div>
+    <div class="title">مراجعة العملية</div>
+    <div id="summary" class="note">اختار عميل واقرأ الفاتورة علشان تظهر ملخص العملية هنا.</div>
+    <div class="divider"></div>
+    <button id="approve" disabled>اعتماد وإضافة النقاط</button>
+    <div id="approvalStatus" class="status">الاعتماد النهائي غير مفعّل في هذه النسخة.</div>
+    <p class="note">تنبيه: النسخة الحالية تربط سكان العميل بقراءة الفاتورة وتسمح بمراجعة البيانات فقط. لم يتم توصيل زر الاعتماد بقاعدة البيانات بعد، ولن تُضاف نقاط فعلية الآن.</p>
+  </section>
+</div>
+<script>
+const SUPABASE_URL = "https://tmxdujzbhbygywxccoye.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_D91tjBXNzor_RRbIwjr1Sg_0fwGfwg6";
+let scanner = null, selectedCustomer = null, invoiceData = null, invoiceImage = null, reviewed = false;
+
+
+const $ = id => document.getElementById(id);
+$("cameraButton").onclick=()=>{ $("invoiceFile").setAttribute("capture","environment"); $("invoiceFile").click(); };
+$("chooseButton").onclick=()=>{ $("invoiceFile").removeAttribute("capture"); $("invoiceFile").click(); };
+
+function setStatus(id,msg,cls=""){ $(id).textContent=msg; $(id).className="status "+cls; }
+function tokenFromText(value){
+  const s=(value||"").trim();
+  const q=s.match(/[?&]token=([a-f0-9]{32})/i);
+  if(q) return q[1];
+  const direct=s.match(/^[a-f0-9]{32}$/i);
+  return direct?direct[0]:null;
+}
+async function fetchCustomer(raw){
+  const token=tokenFromText(raw);
+  if(!token){setStatus("customerStatus","الكود غير واضح. لازم يكون رابط بطاقة فيه token أو Public Token مكوّن من 32 خانة.","bad");return;}
+  setStatus("customerStatus","جاري تحميل بيانات العميل...");
+  try{
+    const res=await fetch(SUPABASE_URL+"/functions/v1/get-customer-card",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_PUBLISHABLE_KEY,"Authorization":"Bearer "+SUPABASE_PUBLISHABLE_KEY},
+      body:JSON.stringify({public_token:token})
+    });
+    const data=await res.json();
+    if(!res.ok||!data.success) throw new Error(data.message||"تعذر العثور على البطاقة");
+    selectedCustomer={...data,public_token:token};
+    $("customerName").textContent=data.customer_name||"عميل";
+    $("storeName").textContent=data.store_name||"";
+    $("points").textContent=data.points_balance??0;
+    $("serial").textContent=data.serial_number||"";
+    $("customerBox").style.display="block";
+    setStatus("customerStatus","تم تحديد العميل بنجاح.","good");
+    updateSummary();
+  }catch(e){selectedCustomer=null;$("customerBox").style.display="none";setStatus("customerStatus",e.message||"حدث خطأ أثناء تحميل العميل.","bad");updateSummary();}
+}
+$("startScan").onclick=async()=>{
+  try{
+    if(!scanner) scanner=new Html5Qrcode("reader");
+    await scanner.start({facingMode:"environment"},{fps:10,qrbox:{width:240,height:240}},async decoded=>{
+      $("tokenInput").value=decoded;
+      await fetchCustomer(decoded);
+      await scanner.stop(); $("startScan").disabled=false; $("stopScan").disabled=true;
+    });
+    $("startScan").disabled=true;$("stopScan").disabled=false;setStatus("customerStatus","وجّه الكاميرا إلى QR العميل...");
+  }catch(e){setStatus("customerStatus","تعذر تشغيل الكاميرا. اسمح للمتصفح باستخدام الكاميرا أو الصق التوكن يدويًا. "+e,"bad");}
+};
+$("stopScan").onclick=async()=>{if(scanner&&scanner.isScanning){await scanner.stop();}$("startScan").disabled=false;$("stopScan").disabled=true;};
+$("loadCustomer").onclick=()=>fetchCustomer($("tokenInput").value);
+
+$("invoiceFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  invoiceImage=f; reviewed=false; invoiceData=null;
+  $("preview").src=URL.createObjectURL(f);$("preview").style.display="block";
+  $("readInvoice").disabled=false;$("review").classList.add("hidden");
+  setStatus("ocrStatus","الصورة جاهزة. اضغط قراءة الفاتورة.");
+  updateSummary();
+};
+$("readInvoice").onclick=async()=>{
+  if(!invoiceImage)return;
+  $("readInvoice").disabled=true;setStatus("ocrStatus","جاري قراءة الفاتورة... قد يستغرق الأمر بعض الوقت.");
+  try{
+    const result=await Tesseract.recognize(invoiceImage,"ara+eng",{logger:m=>{
+      if(m.status==="recognizing text"){const pct=Math.round((m.progress||0)*100);$("ocrProgress").style.width=pct+"%";setStatus("ocrStatus","جاري قراءة النص: "+pct+"%");}
+    }});
+    const text=result.data.text||"";
+    $("ocrText").textContent=text||"لم يتم استخراج نص واضح.";
+    const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    const numberLine=lines.find(x=>/(invoice|receipt|فاتورة|رقم)/i.test(x));
+    const dateMatch=text.match(/\b(?:20\d{2}[-\/.]\d{1,2}[-\/.]\d{1,2}|\d{1,2}[-\/.]\d{1,2}[-\/.](?:20)?\d{2})\b/);
+    let amounts=[...text.matchAll(/(?:EGP|LE|جنيه|ج\.م)?\s*([0-9٠-٩۰-۹]+(?:[,.٫][0-9٠-٩۰-۹]{1,2})?)/gi)].map(m=>m[1]);
+    const normalize=s=>s.replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/,/g,".");
+    let total="";
+    if(amounts.length){const nums=amounts.map(x=>Number(normalize(x))).filter(n=>Number.isFinite(n)&&n>0&&n<100000000);if(nums.length)total=Math.max(...nums).toFixed(2);}
+    $("invoiceNumber").value=numberLine?(numberLine.match(/[A-Z0-9\-\/]{3,}/i)||[])[0]||"": "";
+    $("invoiceDate").value=dateMatch?dateMatch[0]:"";
+    $("invoiceTotal").value=total;
+    invoiceData={raw_text:text};
+    $("review").classList.remove("hidden");
+    $("reviewReady").disabled=false;
+    $("ocrProgress").style.width="100%";setStatus("ocrStatus","انتهت القراءة. راجع البيانات المستخرجة قبل التأكيد.","good");
+    updateSummary();
+  }catch(e){setStatus("ocrStatus","فشلت قراءة الصورة: "+e.message,"bad");}
+  $("readInvoice").disabled=false;
+};
+["invoiceNumber","invoiceDate","invoiceTotal"].forEach(id=>$(id).addEventListener("input",()=>{reviewed=false;updateSummary();}));
+$("reviewReady").onclick=()=>{
+  const amount=Number($("invoiceTotal").value);
+  if(!Number.isFinite(amount)||amount<=0){setStatus("reviewStatus","اكتب إجمالي صحيح أكبر من صفر.","bad");return;}
+  invoiceData={...invoiceData,invoice_number:$("invoiceNumber").value.trim(),invoice_date:$("invoiceDate").value.trim(),total:amount};
+  reviewed=true;setStatus("reviewStatus","تم تأكيد المراجعة المبدئية للبيانات.","good");updateSummary();
+};
+function updateSummary(){
+  const ready=!!selectedCustomer&&!!invoiceImage&&!!invoiceData&&reviewed;
+  $("approve").disabled=true;
+  if(!selectedCustomer&&!invoiceImage){$("summary").textContent="اختار عميل واقرأ الفاتورة علشان تظهر ملخص العملية هنا.";return;}
+  $("summary").innerHTML=
+    "<b>العميل:</b> "+(selectedCustomer?escapeHtml(selectedCustomer.customer_name):"لم يتم الاختيار")+"<br>"+
+    "<b>رقم الفاتورة:</b> "+escapeHtml($("invoiceNumber").value||"غير محدد")+"<br>"+
+    "<b>التاريخ:</b> "+escapeHtml($("invoiceDate").value||"غير محدد")+"<br>"+
+    "<b>الإجمالي:</b> "+escapeHtml($("invoiceTotal").value||"غير محدد")+" جنيه<br>"+
+    "<b>المراجعة:</b> "+(reviewed?"مؤكدة":"لم تكتمل");
+  if(ready)setStatus("approvalStatus","البيانات جاهزة للربط بخدمة الاعتماد الآمن. زر الاعتماد سيُفعّل بعد توصيل الـ Backend.");
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+$("resetInvoice").onclick=()=>{
+  $("invoiceFile").value="";$("preview").src="";$("preview").style.display="none";
+  $("review").classList.add("hidden");$("readInvoice").disabled=true;invoiceImage=null;invoiceData=null;reviewed=false;
+  $("ocrProgress").style.width="0%";setStatus("ocrStatus","في انتظار صورة الفاتورة.");updateSummary();
+};
+$("approve").onclick=()=>setStatus("approvalStatus","الاعتماد الفعلي غير متاح قبل إعداد خدمة تسجيل المشتريات الآمنة.","bad");
+</script>
+</body>
+</html>
