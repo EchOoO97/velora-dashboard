@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101113"><title>كارت الولاء | Velora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#0b0c0e;--panel:#17191c;--line:#30343a;--muted:#a6abb1;--gold:#f5c900;--red:#e23b32}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:25px 15px 40px;background:radial-gradient(ellipse at top,#393329 0,#171719 35%,var(--bg) 75%);color:#f7f7f4;font-family:Cairo,sans-serif}
+.wrap{width:min(100%,480px);margin:auto}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.brand{display:flex;gap:10px;align-items:center;font-weight:900;letter-spacing:1px}.mark{width:38px;height:38px;border-radius:12px;background:var(--gold);color:#111;display:grid;place-items:center;font-size:22px}.powered{font-size:11px;color:var(--muted)}
+.card{position:relative;overflow:hidden;border:1px solid #514a39;border-radius:27px;padding:23px;background:linear-gradient(135deg,#242528,#101113 65%,#292116);box-shadow:0 25px 65px #0009}.head{display:flex;align-items:center;gap:13px}.logo,.fallback{width:64px;height:64px;border-radius:16px;object-fit:contain;background:#292b2e;border:1px solid #4b4d50;padding:5px}.fallback{display:grid;place-items:center;background:var(--gold);color:#111;font-size:25px;font-weight:900}.store{font-size:21px;font-weight:900}.sub{font-size:11px;color:#c3c0b7}.active{margin-right:auto;background:#173522;color:#9be3b2;border:1px solid #326c4b;border-radius:30px;padding:4px 10px;font-size:11px}.divider{height:1px;background:#514a3c;margin:22px 0}.label{font-size:12px;color:var(--muted)}.customer{font-size:23px;font-weight:800}.points{margin-top:19px;padding:16px 18px;border-radius:18px;background:linear-gradient(110deg,#f6d20a,#e8aa00);color:#171717;display:flex;align-items:center;justify-content:space-between}.points small{font-weight:800}.number{font-size:39px;font-weight:900;line-height:1.3}.star{font-size:34px}.meta{display:flex;justify-content:space-between;margin-top:16px;color:#b9bdc1;font-size:11px}.meta strong{display:block;color:white;font-size:12px;direction:ltr;margin-top:3px}.qr{margin-top:18px;padding:18px;border-radius:22px;background:#f8f8f5;color:#161616;text-align:center}.qr b{font-size:15px}.qr p{font-size:11px;color:#666;margin:2px 0 12px}#qrcode{display:flex;justify-content:center;min-height:170px;margin:10px auto}#qrcode img{margin:auto}.footqr{font-size:10px;color:#666}.notice{margin-top:15px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#121417;color:#b9bec4;font-size:12px;line-height:1.8}.notice b{color:var(--gold)}.error{display:none;margin-top:15px;padding:14px;border:1px solid #773b36;background:#2b1716;color:#ffb8b2;border-radius:14px;text-align:center}.loading{text-align:center;padding:75px 15px;color:#ddd}.spinner{width:32px;height:32px;border:3px solid #ffffff22;border-top-color:var(--gold);border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.footer{text-align:center;color:#777e85;font-size:11px;margin-top:20px}.footer b{color:var(--gold)}[hidden]{display:none!important}
+</style></head>
+<body><main class="wrap">
+<header class="top"><div class="brand"><div class="mark">V</div>VELORA</div><div class="powered">LOYALTY EXPERIENCE</div></header>
+<div id="loading" class="loading"><div class="spinner"></div>جاري تحميل كارت الولاء...</div>
+<section id="card" class="card" hidden>
+<div class="head"><div id="fallback" class="fallback">5</div><img id="logo" class="logo" alt="شعار المتجر" hidden><div><div id="store" class="store">اسم المتجر</div><div class="sub">LOYALTY MEMBER CARD</div></div><span class="active">نشط</span></div>
+<div class="divider"></div><div class="label">مرحباً بك في برنامج الولاء</div><div id="customer" class="customer">اسم العميل</div>
+<div class="points"><div><small>رصيد نقاطك الحالي</small><div><span id="points" class="number">0</span> <b>نقطة</b></div></div><div class="star">★</div></div>
+<div class="meta"><div>رقم العضوية<strong id="serial">—</strong></div><div>نوع البطاقة<strong>WEB MEMBER</strong></div></div>
+</section>
+<section id="qrPanel" class="qr" hidden><b>كارت العضوية الخاص بك</b><p>اعرض هذا الرمز عند الكاشير للتعرف على عضويتك</p><div id="qrcode"></div><div class="footqr">احتفظ بهذا الرمز ولا تشاركه علنًا</div></section>
+<div id="error" class="error"></div><div id="notice" class="notice" hidden>رصيد النقاط بيتحدث عند فتح الكارت بعد تسجيل المشتريات. <b>لا يمكن إضافة النقاط من صفحة العميل.</b></div>
+<footer class="footer">Powered by <b>VELORA</b> · Loyalty made simple</footer></main>
+<script>
+(async()=>{
+const SUPABASE_URL="https://tmxdujzbhbygywxccoye.supabase.co";
+const PUBLISHABLE_KEY="sb_publishable_D91tjBXNzor_RRbIwjr1Sg_0fwGfwg6";
+const token=new URLSearchParams(location.search).get("token");
+const loading=document.getElementById("loading"), errorBox=document.getElementById("error");
+function fail(message){loading.hidden=true;errorBox.textContent=message;errorBox.style.display="block";}
+if(!token||!/^[a-f0-9]{32}$/i.test(token)){fail("رابط الكارت غير صحيح. برجاء استخدام رابط العضوية المرسل من المتجر.");return;}
+try{
+const res=await fetch(SUPABASE_URL+"/functions/v1/get-customer-card",{method:"POST",headers:{"Content-Type":"application/json","apikey":PUBLISHABLE_KEY,"Authorization":"Bearer "+PUBLISHABLE_KEY},body:JSON.stringify({public_token:token})});
+const result=await res.json();if(!res.ok||!result.success||!result.card)throw new Error(result.error||"تعذر تحميل الكارت حاليًا.");
+const d=result.card;
+document.getElementById("store").textContent=d.store_name||"متجر Velora";
+document.getElementById("customer").textContent=d.customer_name||"عميلنا العزيز";
+document.getElementById("points").textContent=Number(d.points_balance||0).toLocaleString("ar-EG");
+document.getElementById("serial").textContent=d.serial_number||"—";
+if(d.store_logo){const img=document.getElementById("logo");img.onload=()=>{img.hidden=false;document.getElementById("fallback").hidden=true;};img.src=d.store_logo;}
+document.getElementById("card").hidden=false;document.getElementById("qrPanel").hidden=false;document.getElementById("notice").hidden=false;loading.hidden=true;
+if(window.QRCode){new QRCode(document.getElementById("qrcode"),{text:location.href,width:170,height:170,colorDark:"#111",colorLight:"#f8f8f5",correctLevel:QRCode.CorrectLevel.M});}else{document.getElementById("qrcode").textContent="تعذر تحميل QR. تحقق من اتصال الإنترنت.";}
+}catch(e){fail(e.message||"حدث خطأ أثناء تحميل الكارت.");}
+})();
+</script></body></html>
