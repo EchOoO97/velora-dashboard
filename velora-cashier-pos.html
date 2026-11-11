@@ -171,12 +171,21 @@ async function fetchCustomer(raw){
       body:JSON.stringify({public_token:token})
     });
     const data=await res.json();
-    if(!res.ok||!data.success) throw new Error(data.message||"تعذر العثور على البطاقة");
-    selectedCustomer={...data,public_token:token};
-    $("customerName").textContent=data.customer_name||"عميل";
-    $("storeName").textContent=data.store_name||"";
-    $("points").textContent=data.points_balance??0;
-    $("serial").textContent=data.serial_number||"";
+    if(!res.ok||!data.success) {
+      throw new Error(data.error||data.message||"تعذر العثور على البطاقة");
+    }
+
+    // get-customer-card returns the customer details inside data.card
+    const card = data.card;
+    if(!card || !card.customer_id || !card.store_id) {
+      throw new Error("استجابة البطاقة ناقصة. تأكد من نشر آخر نسخة من get-customer-card.");
+    }
+
+    selectedCustomer={...card,public_token:token};
+    $("customerName").textContent=card.customer_name||"عميل";
+    $("storeName").textContent=card.store_name||"";
+    $("points").textContent=card.points_balance??0;
+    $("serial").textContent=card.serial_number||"";
     $("customerBox").style.display="block";
     setStatus("customerStatus","تم تحديد العميل بنجاح.","good");
     updateSummary();
