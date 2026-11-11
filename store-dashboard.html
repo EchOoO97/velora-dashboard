@@ -66,6 +66,61 @@ $("loginForm").addEventListener("submit",async e=>{
 $("logoutBtn").addEventListener("click",async()=>{await sb.auth.signOut();currentUser=null;currentStore=null;currentMembership=null;showLogin()});
 (async()=>{const {data:{session}}=await sb.auth.getSession();if(session?.user){try{await finishLogin(session.user)}catch(err){showError(err.message);await sb.auth.signOut()}}})();
 const sections={home:["أهلاً بك في لوحة متجرك","ملخص برنامج الولاء الخاص بمتجرك."],employees:["إدارة الموظفين","إضافة الموظفين وتحديد صلاحياتهم ومتابعة حساباتهم."],customers:["العملاء","عرض عملاء متجرك وأرصدتهم من النقاط."],points:["إدارة النقاط","إضافة أو خصم نقاط يدويًا مع تسجيل سبب العملية واسم الموظف."],rewards:["المكافآت","إدارة المكافآت وشروط استبدال النقاط."],transactions:["المعاملات","مراجعة عمليات الشراء والنقاط المكتسبة."],reports:["التقارير","متابعة أداء برنامج الولاء."],settings:["إعدادات البرنامج","تعديل نظام احتساب النقاط وإعدادات متجرك."]};
-$("nav").addEventListener("click",e=>{const b=e.target.closest("button[data-section]");if(!b)return;document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active",x===b));const key=b.dataset.section,info=sections[key];$("pageTitle").textContent=info[0];$("pageSubtitle").textContent=info[1];$("homeContent").classList.toggle("hidden",key!=="home");$("sectionContent").classList.toggle("hidden",key==="home");if(key!=="home")$("sectionContent").innerHTML="<h3>"+info[0]+"</h3><p class='muted'>"+info[1]+"</p><div class='notice'>القسم في مرحلة التجهيز. لن نفعّل أي عملية قبل ربطها بصلاحيات آمنة في قاعدة البيانات.</div>"});
+function renderEmployees(){
+ const box=$("sectionContent");
+ if(currentMembership?.role!=="owner"){
+  box.innerHTML="<h3>إدارة الموظفين</h3><div class='notice'>إضافة الموظفين متاحة حاليًا لصاحب المتجر فقط. اطلب من صاحب المتجر تنفيذ الإضافة.</div>";
+  return;
+ }
+ if(currentStore?.slug!=="5roosters"){
+  box.innerHTML="<h3>إدارة الموظفين</h3><div class='notice'>نجهز ربط إضافة الموظفين لباقي المتاجر. الاختبار الحالي مخصص لمتجر 5Roosters.</div>";
+  return;
+ }
+ box.innerHTML=`
+  <h3>إضافة موظف جديد</h3>
+  <p class="muted">أنشئ حسابًا لموظف تابع لمتجرك. لا تشارك كلمة المرور في المحادثة.</p>
+  <form id="employeeForm">
+   <div class="field"><label for="empName">اسم الموظف</label><input id="empName" required maxlength="100" placeholder="اسم الموظف"></div>
+   <div class="field"><label for="empEmail">البريد الإلكتروني</label><input id="empEmail" type="email" required placeholder="employee@example.com"></div>
+   <div class="field"><label for="empPassword">كلمة مرور مؤقتة (8 أحرف على الأقل)</label><input id="empPassword" type="password" minlength="8" required autocomplete="new-password"></div>
+   <div class="field"><label for="empRole">الصلاحية</label><select id="empRole" required><option value="cashier">Cashier – كاشير</option><option value="admin">Admin – مدير</option></select></div>
+   <button class="btn" id="createEmployeeBtn" type="submit">إنشاء حساب الموظف</button>
+   <div class="error" id="employeeError" role="alert"></div>
+   <div id="employeeSuccess" class="notice hidden" style="margin-top:12px"></div>
+  </form>`;
+ $("employeeForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const button=$("createEmployeeBtn"), error=$("employeeError"), success=$("employeeSuccess");
+  error.textContent="";success.classList.add("hidden");button.disabled=true;button.textContent="جارٍ إنشاء الحساب...";
+  try{
+   const {data,error:fnError}=await sb.functions.invoke("create-employee",{body:{
+    full_name:$("empName").value.trim(),
+    email:$("empEmail").value.trim(),
+    password:$("empPassword").value,
+    role:$("empRole").value
+   }});
+   if(fnError){
+    let detail=fnError.message||"تعذر الاتصال بدالة إنشاء الموظف.";
+    try{const body=await fnError.context?.json?.();if(body?.error)detail=body.error}catch(_){}
+    throw new Error(detail);
+   }
+   if(!data?.success)throw new Error(data?.error||"لم يتم إنشاء الموظف.");
+   success.textContent="تم إنشاء حساب الموظف وربطه بمتجر 5Roosters بنجاح.";
+   success.classList.remove("hidden");
+   $("employeeForm").reset();
+  }catch(err){error.textContent=err.message||"حدث خطأ أثناء إنشاء الموظف."}
+  finally{button.disabled=false;button.textContent="إنشاء حساب الموظف"}
+ });
+}
+$("nav").addEventListener("click",e=>{
+ const b=e.target.closest("button[data-section]");if(!b)return;
+ document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active",x===b));
+ const key=b.dataset.section,info=sections[key];
+ $("pageTitle").textContent=info[0];$("pageSubtitle").textContent=info[1];
+ $("homeContent").classList.toggle("hidden",key!=="home");
+ $("sectionContent").classList.toggle("hidden",key==="home");
+ if(key==="employees")renderEmployees();
+ else if(key!=="home")$("sectionContent").innerHTML="<h3>"+info[0]+"</h3><p class='muted'>"+info[1]+"</p><div class='notice'>القسم في مرحلة التجهيز. سنربطه بقاعدة البيانات بعد تجهيز العمليات الآمنة.</div>";
+});
 </script>
 </body></html>
