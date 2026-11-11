@@ -77,6 +77,8 @@ function renderEmployees(){
   return;
  }
  box.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3>فريق المتجر</h3><p class="muted">الموظفون المرتبطون بمتجرك.</p></div><button type="button" class="btn secondary" id="refreshEmployeesBtn">تحديث القائمة</button></div>
+  <div id="employeesList" class="notice" style="margin:12px 0 22px">جارٍ تحميل الموظفين...</div>
   <h3>إضافة موظف جديد</h3>
   <p class="muted">أنشئ حسابًا لموظف تابع لمتجرك. لا تشارك كلمة المرور في المحادثة.</p>
   <form id="employeeForm">
@@ -88,6 +90,21 @@ function renderEmployees(){
    <div class="error" id="employeeError" role="alert"></div>
    <div id="employeeSuccess" class="notice hidden" style="margin-top:12px"></div>
   </form>`;
+ async function loadEmployees(){
+  const target=$("employeesList"); target.textContent="جارٍ تحميل الموظفين...";
+  try{
+   const {data,error}=await sb.functions.invoke("list-employees",{body:{}});
+   if(error){let msg=error.message||"تعذر تحميل القائمة.";try{const payload=await error.context?.json?.();if(payload?.error)msg=payload.error}catch(_){}throw new Error(msg)}
+   if(!data?.success)throw new Error(data?.error||"تعذر تحميل الموظفين.");
+   const rows=data.employees||[];
+   if(!rows.length){target.textContent="لا يوجد موظفون مضافون حتى الآن.";return}
+   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));
+   target.className="table-wrap";
+   target.innerHTML=`<table style="width:100%;border-collapse:collapse;min-width:480px"><thead><tr><th style="text-align:right;padding:10px">الاسم</th><th style="text-align:right;padding:10px">البريد الإلكتروني</th><th style="text-align:right;padding:10px">الصلاحية</th><th style="text-align:right;padding:10px">تاريخ الإضافة</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="padding:10px;border-top:1px solid var(--line)">${esc(r.full_name||"—")}</td><td style="padding:10px;border-top:1px solid var(--line)">${esc(r.email||"—")}</td><td style="padding:10px;border-top:1px solid var(--line)">${r.role==="admin"?"Admin – مدير":"Cashier – كاشير"}</td><td style="padding:10px;border-top:1px solid var(--line)">${r.created_at?new Date(r.created_at).toLocaleDateString("ar-EG"):"—"}</td></tr>`).join("")}</tbody></table>`;
+  }catch(err){target.className="notice";target.textContent="تعذر تحميل الموظفين: "+(err.message||"خطأ غير معروف")}
+ }
+ $("refreshEmployeesBtn").addEventListener("click",loadEmployees);
+ loadEmployees();
  $("employeeForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const button=$("createEmployeeBtn"), error=$("employeeError"), success=$("employeeSuccess");
@@ -108,6 +125,7 @@ function renderEmployees(){
    success.textContent="تم إنشاء حساب الموظف وربطه بمتجر 5Roosters بنجاح.";
    success.classList.remove("hidden");
    $("employeeForm").reset();
+   await loadEmployees();
   }catch(err){error.textContent=err.message||"حدث خطأ أثناء إنشاء الموظف."}
   finally{button.disabled=false;button.textContent="إنشاء حساب الموظف"}
  });
