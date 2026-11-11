@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 
 :root{--gold:#ffd000;--bg:#0c0d0f;--panel:#17191d;--muted:#aeb3bd;--line:#343840;--white:#f7f7f5}
@@ -354,6 +355,170 @@ $("resetInvoice").onclick=()=>{
   $("ocrProgress").style.width="0%";setStatus("ocrStatus","في انتظار صورة الفاتورة.");updateSummary();
 };
 $("approve").onclick=()=>setStatus("approvalStatus","الاعتماد الفعلي غير متاح قبل إعداد خدمة تسجيل المشتريات الآمنة.","bad");
+
+// =====================================
+// VELORA - CASHIER AUTHENTICATION
+// =====================================
+
+const veloraAuth = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+// قفل شاشة الكاشير لحين تسجيل الدخول
+document.querySelector(".wrap").style.display = "none";
+
+const loginScreen = document.createElement("div");
+loginScreen.id = "veloraLogin";
+loginScreen.dir = "rtl";
+
+loginScreen.style.cssText = `
+  max-width:430px;
+  margin:70px auto;
+  padding:28px;
+  background:#17191d;
+  border:1px solid #766333;
+  border-radius:20px;
+  color:#fff;
+  font-family:Cairo,sans-serif;
+`;
+
+loginScreen.innerHTML = `
+  <div style="text-align:center;margin-bottom:25px">
+    <h1 style="color:#ffd000;margin:0">VELORA</h1>
+    <p style="color:#aaa">تسجيل دخول الكاشير</p>
+  </div>
+
+  <label>البريد الإلكتروني</label>
+  <input id="veloraEmail" type="email"
+    placeholder="name@example.com" autocomplete="username">
+
+  <label>كلمة المرور</label>
+  <input id="veloraPassword" type="password"
+    placeholder="كلمة المرور" autocomplete="current-password">
+
+  <button id="veloraLoginBtn" style="width:100%">
+    تسجيل الدخول
+  </button>
+
+  <div id="veloraLoginStatus"
+    style="margin-top:15px;font-size:13px;color:#ff9999">
+  </div>
+`;
+
+document.body.appendChild(loginScreen);
+
+async function checkVeloraSession() {
+  const { data, error } = await veloraAuth.auth.getSession();
+
+  if (error || !data.session) {
+    loginScreen.style.display = "block";
+    return;
+  }
+
+  await verifyVeloraEmployee(data.session.user);
+}
+
+async function verifyVeloraEmployee(user) {
+  const status = document.getElementById("veloraLoginStatus");
+
+  status.style.color = "#ffd000";
+  status.textContent = "جاري التحقق من صلاحيات الحساب...";
+
+  try {
+    const { data: member, error } = await veloraAuth
+      .from("store_members")
+      .select("store_id, role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!member) {
+      throw new Error("الحساب غير مسجل كعضو في أي متجر.");
+    }
+
+    const { data: store, error: storeError } = await veloraAuth
+      .from("stores")
+      .select("id, name, slug, status")
+      .eq("id", member.store_id)
+      .eq("slug", "5roosters")
+      .maybeSingle();
+
+    if (storeError) throw storeError;
+
+    if (!store || store.status !== "active") {
+      throw new Error("لا توجد صلاحية دخول لمتجر 5Roosters.");
+    }
+
+    if (!["owner", "admin", "cashier"].includes(member.role)) {
+      throw new Error("صلاحية الحساب غير مسموح لها باستخدام الكاشير.");
+    }
+
+    loginScreen.style.display = "none";
+    document.querySelector(".wrap").style.display = "block";
+
+    // بيانات الجلسة الحالية للاستخدام في الخطوات التالية
+    window.veloraEmployee = {
+      user_id: user.id,
+      store_id: store.id,
+      store_name: store.name,
+      role: member.role
+    };
+
+    const logout = document.createElement("button");
+    logout.textContent = "تسجيل الخروج";
+    logout.className = "secondary";
+    logout.style.marginTop = "10px";
+
+    logout.onclick = async () => {
+      await veloraAuth.auth.signOut();
+      location.reload();
+    };
+
+    document.querySelector(".top").appendChild(logout);
+
+  } catch (err) {
+    status.style.color = "#ff8f8f";
+    status.textContent = err.message;
+  }
+}
+
+document.getElementById("veloraLoginBtn").onclick = async () => {
+  const email = document.getElementById("veloraEmail").value.trim();
+  const password = document.getElementById("veloraPassword").value;
+  const status = document.getElementById("veloraLoginStatus");
+  const button = document.getElementById("veloraLoginBtn");
+
+  if (!email || !password) {
+    status.textContent = "اكتب البريد الإلكتروني وكلمة المرور.";
+    return;
+  }
+
+  button.disabled = true;
+  status.style.color = "#ffd000";
+  status.textContent = "جاري تسجيل الدخول...";
+
+  try {
+    const { data, error } = await veloraAuth.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) throw error;
+
+    await verifyVeloraEmployee(data.user);
+
+  } catch (err) {
+    status.style.color = "#ff8f8f";
+    status.textContent = err.message;
+  }
+
+  button.disabled = false;
+};
+
+checkVeloraSession();
+
 </script>
 </body>
 </html>
