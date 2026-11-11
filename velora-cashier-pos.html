@@ -223,19 +223,95 @@ $("readInvoice").onclick=async()=>{
     const text=result.data.text||"";
     $("ocrText").textContent=text||"لم يتم استخراج نص واضح.";
     const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-    const numberLine=lines.find(x=>/(invoice|receipt|فاتورة|رقم)/i.test(x));
-    const dateMatch=text.match(/\b(?:20\d{2}[-\/.]\d{1,2}[-\/.]\d{1,2}|\d{1,2}[-\/.]\d{1,2}[-\/.](?:20)?\d{2})\b/);
-    let amounts=[...text.matchAll(/(?:EGP|LE|جنيه|ج\.م)?\s*([0-9٠-٩۰-۹]+(?:[,.٫][0-9٠-٩۰-۹]{1,2})?)/gi)].map(m=>m[1]);
-    const normalize=s=>s.replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/,/g,".");
+
+    const normalizeDigits=s=>String(s)
+      .replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d))
+      .replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+
+    const dateMatch=normalizeDigits(text).match(
+      /\b(?:20\d{2}[-\/.]\d{1,2}[-\/.]\d{1,2}|\d{1,2}[-\/.]\d{1,2}[-\/.](?:20)?\d{2})\b/
+    );
+
+    // Normalize OCR text so Arabic/English label variations can be recognized.
+    const normalizeLabel=s=>normalizeDigits(String(s))
+      .toLowerCase()
+      .replace(/[أإآ]/g,"ا")
+      .replace(/[ىي]/g,"ي")
+      .replace(/[ة]/g,"ه")
+      .replace(/[ًٌٍَُِّْـ]/g,"")
+      .replace(/\s+/g," ")
+      .trim();
+
+    // Invoice number keywords: only accept a number near a clear invoice identifier.
+    const invoiceLabelPattern=/(?:check\s*(?:no\.?|number|#)?|invoice\s*(?:no\.?|number|#)?|receipt\s*(?:no\.?|number|#)?|bill\s*(?:no\.?|number|#)?|order\s*(?:no\.?|number|#)?|رقم\s*(?:الفاتوره|الايصال|الطلب|الفاتوره الضريبيه|العمليه)|(?:فاتوره|ايصال)\s*(?:رقم|#)|كود\s*الفاتوره)/i;
+    let invoiceNumber="";
+    for(let i=0;i<lines.length;i++){
+      const line=normalizeDigits(lines[i]);
+      if(invoiceLabelPattern.test(normalizeLabel(line))){
+        const afterLabel=line.replace(invoiceLabelPattern," ");
+        const candidate=afterLabel.match(/[A-Z0-9][A-Z0-9\-\/]{1,}/i);
+        if(candidate){ invoiceNumber=candidate[0]; break; }
+        // OCR sometimes places the number on the following line.
+        if(lines[i+1]){
+          const next=normalizeDigits(lines[i+1]).match(/[A-Z0-9][A-Z0-9\-\/]{1,}/i);
+          if(next){ invoiceNumber=next[0]; break; }
+        }
+      }
+    }
+
+    // Parse money formats such as 1,201.56, 1201.56, or ١٢٠١٫٥٦.
+    const parseMoney=value=>{
+      const cleaned=normalizeDigits(value).replace(/٫/g,".").replace(/٬/g,",").replace(/[^0-9.,]/g,"");
+      if(!cleaned) return null;
+      let normalized=cleaned;
+      if(normalized.includes(",") && normalized.includes(".")){
+        normalized=normalized.replace(/,/g,"");
+      } else if(normalized.includes(",") && /,\d{1,2}$/.test(normalized)){
+        normalized=normalized.replace(",",".");
+      } else {
+        normalized=normalized.replace(/,/g,"");
+      }
+      const n=Number(normalized);
+      return Number.isFinite(n) && n>0 ? n : null;
+    };
+
+    // Total keywords in Arabic and English. Explicitly exclude subtotal/tax/VAT/discount lines.
+    const totalLabelPattern=/(?:\bgrand\s*total\b|\bnet\s*total\b|\btotal\s*due\b|\bamount\s*due\b|\bbalance\s*due\b|\bamount\s*payable\b|\btotal\b|\bpayable\b|الاجمالي|اجمالي|المبلغ\s*الاجمالي|اجمالي\s*الفاتوره|قيمه\s*الفاتوره|الصافي|المطلوب\s*سداده|المبلغ\s*المستحق|الاجمالي\s*المستحق)/i;
+    const excludedTotalPattern=/(?:sub\s*total|subtotal|\bvat\b|\btax\b|\bdiscount\b|\bchange\b|ضريبه|الضريبه|الخصم|خصم|قبل\s*الضريبه)/i;
+    const moneyPattern=/\d[\d,٬]*[.٫,]\d{1,2}|\d[\d,٬]{2,}/g;
     let total="";
-    if(amounts.length){const nums=amounts.map(x=>Number(normalize(x))).filter(n=>Number.isFinite(n)&&n>0&&n<100000000);if(nums.length)total=Math.max(...nums).toFixed(2);}
-    $("invoiceNumber").value=numberLine?(numberLine.match(/[A-Z0-9\-\/]{3,}/i)||[])[0]||"": "";
+    let matchedTotalLine=null;
+
+    for(let i=0;i<lines.length;i++){
+      const normalizedLine=normalizeLabel(lines[i]);
+      if(totalLabelPattern.test(normalizedLine) && !excludedTotalPattern.test(normalizedLine)){
+        matchedTotalLine=lines[i];
+        let matches=[...normalizeDigits(lines[i]).matchAll(moneyPattern)];
+        // If the label is on a separate line, inspect the next line too.
+        if(!matches.length && lines[i+1]){
+          matches=[...normalizeDigits(lines[i+1]).matchAll(moneyPattern)];
+        }
+        if(matches.length){
+          const candidate=parseMoney(matches[matches.length-1][0]);
+          if(candidate!==null){ total=candidate.toFixed(2); break; }
+        }
+      }
+    }
+
+    $("invoiceNumber").value=invoiceNumber;
     $("invoiceDate").value=dateMatch?dateMatch[0]:"";
     $("invoiceTotal").value=total;
     invoiceData={raw_text:text};
     $("review").classList.remove("hidden");
     $("reviewReady").disabled=false;
-    $("ocrProgress").style.width="100%";setStatus("ocrStatus","انتهت القراءة. راجع البيانات المستخرجة قبل التأكيد.","good");
+    $("ocrProgress").style.width="100%";
+    setStatus(
+      "ocrStatus",
+      total
+        ? "انتهت القراءة. تم البحث باستخدام كلمات متعددة لرقم الفاتورة والإجمالي؛ راجع البيانات يدويًا قبل التأكيد."
+        : "انتهت القراءة، لكن لم أتعرف على الإجمالي من الكلمات الدالة. أدخله يدويًا بعد مراجعة الفاتورة.",
+      total ? "good" : "bad"
+    );
     updateSummary();
   }catch(e){setStatus("ocrStatus","فشلت قراءة الصورة: "+e.message,"bad");}
   $("readInvoice").disabled=false;
