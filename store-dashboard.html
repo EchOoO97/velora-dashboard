@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velora | لوحة المتجر</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f4f7fb;--surface:#fff;--text:#183548;--muted:#778b9c;--line:#e2eaf0;--brand:#218b9b;--brand2:#15566a;--green:#15966a;--red:#c94c4c;--shadow:0 8px 28px rgba(25,55,75,.06)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Tahoma,"Segoe UI",Arial,sans-serif}button,input{font:inherit}button{cursor:pointer;border:0}
+.wrap{max-width:1200px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.brand{display:flex;align-items:center;gap:10px}.logo{width:44px;height:44px;border-radius:13px;background:linear-gradient(145deg,#17475a,#238fa0);color:#fff;display:grid;place-items:center;font-size:24px;font-weight:bold}.brand h1{font-size:21px;margin:0}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:4px;letter-spacing:1px}
+.btn{background:var(--brand2);color:#fff;border-radius:10px;padding:11px 16px}.btn.secondary{background:#eaf2f5;color:var(--brand2)}.btn:disabled{opacity:.55;cursor:not-allowed}
+.login-shell{min-height:75vh;display:grid;place-items:center}.login{width:min(440px,100%);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:var(--shadow)}.login h2{margin:0 0 8px}.muted{color:var(--muted);font-size:13px;line-height:1.7}.field{margin:18px 0}.field label{display:block;font-size:13px;margin-bottom:8px}.field input{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);outline-color:var(--brand)}.error{color:var(--red);font-size:13px;min-height:20px;margin:10px 0}.hidden{display:none!important}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px}.sidebar,.panel,.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}.sidebar{padding:14px;height:max-content}.storebox{padding:12px;border-bottom:1px solid var(--line);margin-bottom:10px}.storebox strong{display:block}.storebox small{color:var(--muted)}.nav{display:grid;gap:5px}.nav button{text-align:right;padding:12px;border-radius:10px;background:transparent;color:var(--muted)}.nav button.active,.nav button:hover{background:#eaf4f5;color:var(--brand2)}.main{min-width:0}.welcome{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:4px 0 18px}.welcome h2{margin:0 0 6px;font-size:24px}.welcome p{margin:0;color:var(--muted);font-size:13px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}.stat{padding:18px}.stat span{color:var(--muted);font-size:12px}.stat strong{display:block;font-size:25px;margin-top:12px}.panel{padding:20px}.panel h3{margin:0 0 10px}.notice{background:#f1f7f8;border:1px solid #dcebed;padding:14px;border-radius:12px;color:#31596a;font-size:13px;line-height:1.8}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#163d4e;color:#fff;padding:12px 18px;border-radius:10px;display:none;z-index:5}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.nav{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:1fr 1fr}.wrap{padding:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand"><div class="logo">V</div><div><h1>Velora</h1><small>STORE MANAGEMENT</small></div></div><button id="logoutBtn" class="btn secondary hidden">تسجيل الخروج</button></header>
+<section id="loginView" class="login-shell"><div class="login">
+<h2>دخول لوحة المتجر</h2><p class="muted">سجّل الدخول بحساب صاحب المتجر أو مدير المتجر.</p>
+<form id="loginForm">
+<div class="field"><label for="email">البريد الإلكتروني</label><input id="email" type="email" autocomplete="username" required placeholder="name@example.com"></div>
+<div class="field"><label for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
+<button class="btn" id="loginBtn" type="submit" style="width:100%">تسجيل الدخول</button><div class="error" id="loginError" role="alert"></div>
+</form></div></section>
+<section id="appView" class="hidden"><div class="layout">
+<aside class="sidebar"><div class="storebox"><strong id="storeName">اسم المتجر</strong><small id="userRole">حساب المتجر</small></div>
+<nav class="nav" id="nav">
+<button class="active" data-section="home">▦ الرئيسية</button><button data-section="employees">♙ إدارة الموظفين</button><button data-section="customers">♧ العملاء</button><button data-section="points">✧ إدارة النقاط</button><button data-section="rewards">♜ المكافآت</button><button data-section="transactions">⇄ المعاملات</button><button data-section="reports">▥ التقارير</button><button data-section="settings">⚙ إعدادات البرنامج</button>
+</nav></aside>
+<main class="main"><div class="welcome"><div><h2 id="pageTitle">أهلاً بك في لوحة متجرك</h2><p id="pageSubtitle">إدارة برنامج الولاء الخاص بمتجرك من مكان واحد.</p></div></div>
+<div id="homeContent"><div class="stats"><div class="stat"><span>العملاء</span><strong>—</strong></div><div class="stat"><span>النقاط الممنوحة</span><strong>—</strong></div><div class="stat"><span>المعاملات</span><strong>—</strong></div></div><div class="panel"><h3>تم تسجيل الدخول بنجاح</h3><div class="notice">تم التحقق من جلسة حسابك وعضويتك في المتجر. سنربط بيانات العملاء والنقاط والمعاملات بعد تجهيز العمليات الآمنة.</div></div></div>
+<div id="sectionContent" class="panel hidden"></div></main></div></section>
+</div><div class="toast" id="toast"></div>
+<script>
+const SUPABASE_URL = "https://tmxdujzbhbygywxccoye.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_D91tjBXNzor_RRbIwjr1Sg_0fwGfwg6";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let currentUser=null,currentMembership=null,currentStore=null;
+const $=id=>document.getElementById(id);
+function showError(msg){$("loginError").textContent=msg||"حدث خطأ غير متوقع."}
+function roleLabel(role){return ({owner:"صاحب المتجر",admin:"مدير المتجر",cashier:"كاشير"})[role]||role}
+async function loadStoreContext(user){
+ const {data:members,error:me}=await sb.from("store_members").select("store_id,role").eq("user_id",user.id);
+ if(me)throw new Error("تعذر التحقق من عضوية المتجر. راجع صلاحيات قاعدة البيانات.");
+ const eligible=(members||[]).filter(m=>["owner","admin"].includes(m.role));
+ if(!eligible.length)throw new Error("هذا الحساب غير مرتبط بمتجر بصلاحية إدارة.");
+ let membership=eligible[0];
+ const {data:store,error:se}=await sb.from("stores").select("id,name,slug,status").eq("id",membership.store_id).single();
+ if(se||!store)throw new Error("تعذر تحميل بيانات المتجر.");
+ if(store.status!=="active")throw new Error("هذا المتجر غير نشط حاليًا. تواصل مع دعم Velora.");
+ currentUser=user;currentMembership=membership;currentStore=store;
+ $("storeName").textContent=store.name||"متجرك";$("userRole").textContent=roleLabel(membership.role)+" · "+(user.email||"");
+}
+function showApp(){$("loginView").classList.add("hidden");$("appView").classList.remove("hidden");$("logoutBtn").classList.remove("hidden")}
+function showLogin(){$("appView").classList.add("hidden");$("loginView").classList.remove("hidden");$("logoutBtn").classList.add("hidden")}
+async function finishLogin(user){await loadStoreContext(user);showApp()}
+$("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();showError("");$("loginBtn").disabled=true;$("loginBtn").textContent="جارٍ تسجيل الدخول...";
+ try{const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)throw new Error("البريد الإلكتروني أو كلمة المرور غير صحيحة.");await finishLogin(data.user)}
+ catch(err){await sb.auth.signOut();showError(err.message)}
+ finally{$("loginBtn").disabled=false;$("loginBtn").textContent="تسجيل الدخول"}
+});
+$("logoutBtn").addEventListener("click",async()=>{await sb.auth.signOut();currentUser=null;currentStore=null;currentMembership=null;showLogin()});
+(async()=>{const {data:{session}}=await sb.auth.getSession();if(session?.user){try{await finishLogin(session.user)}catch(err){showError(err.message);await sb.auth.signOut()}}})();
+const sections={home:["أهلاً بك في لوحة متجرك","ملخص برنامج الولاء الخاص بمتجرك."],employees:["إدارة الموظفين","إضافة الموظفين وتحديد صلاحياتهم ومتابعة حساباتهم."],customers:["العملاء","عرض عملاء متجرك وأرصدتهم من النقاط."],points:["إدارة النقاط","إضافة أو خصم نقاط يدويًا مع تسجيل سبب العملية واسم الموظف."],rewards:["المكافآت","إدارة المكافآت وشروط استبدال النقاط."],transactions:["المعاملات","مراجعة عمليات الشراء والنقاط المكتسبة."],reports:["التقارير","متابعة أداء برنامج الولاء."],settings:["إعدادات البرنامج","تعديل نظام احتساب النقاط وإعدادات متجرك."]};
+$("nav").addEventListener("click",e=>{const b=e.target.closest("button[data-section]");if(!b)return;document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active",x===b));const key=b.dataset.section,info=sections[key];$("pageTitle").textContent=info[0];$("pageSubtitle").textContent=info[1];$("homeContent").classList.toggle("hidden",key!=="home");$("sectionContent").classList.toggle("hidden",key==="home");if(key!=="home")$("sectionContent").innerHTML="<h3>"+info[0]+"</h3><p class='muted'>"+info[1]+"</p><div class='notice'>القسم في مرحلة التجهيز. لن نفعّل أي عملية قبل ربطها بصلاحيات آمنة في قاعدة البيانات.</div>"});
+</script>
+</body></html>
