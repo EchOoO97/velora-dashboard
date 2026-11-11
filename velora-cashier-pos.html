@@ -175,17 +175,29 @@ async function fetchCustomer(raw){
       throw new Error(data.error||data.message||"تعذر العثور على البطاقة");
     }
 
-    // get-customer-card returns the customer details inside data.card
-    const card = data.card;
-    if(!card || !card.customer_id || !card.store_id) {
-      throw new Error("استجابة البطاقة ناقصة. تأكد من نشر آخر نسخة من get-customer-card.");
+    // Accept the current API shape and compatible legacy field names.
+    const card = data.card || data.customer || data;
+    const customerName =
+      card.customer_name || card.full_name || card.name || "";
+    const customerId = card.customer_id || card.id || "";
+    const storeId = card.store_id || "";
+
+    if(!card || !customerId || !storeId) {
+      throw new Error("استجابة البطاقة ناقصة (معرف العميل أو المتجر). تأكد من نشر آخر نسخة من get-customer-card.");
     }
 
-    selectedCustomer={...card,public_token:token};
-    $("customerName").textContent=card.customer_name||"عميل";
-    $("storeName").textContent=card.store_name||"";
-    $("points").textContent=card.points_balance??0;
-    $("serial").textContent=card.serial_number||"";
+    selectedCustomer = {
+      ...card,
+      customer_id: customerId,
+      store_id: storeId,
+      customer_name: customerName || "عميل",
+      public_token: token
+    };
+
+    $("customerName").textContent = selectedCustomer.customer_name;
+    $("storeName").textContent = card.store_name || "";
+    $("points").textContent = card.points_balance ?? 0;
+    $("serial").textContent = card.serial_number || "";
     $("customerBox").style.display="block";
     setStatus("customerStatus","تم تحديد العميل بنجاح.","good");
     updateSummary();
@@ -328,7 +340,7 @@ function updateSummary(){
   $("approve").disabled=true;
   if(!selectedCustomer&&!invoiceImage){$("summary").textContent="اختار عميل واقرأ الفاتورة علشان تظهر ملخص العملية هنا.";return;}
   $("summary").innerHTML=
-    "<b>العميل:</b> "+(selectedCustomer?escapeHtml(selectedCustomer.customer_name):"لم يتم الاختيار")+"<br>"+
+    "<b>العميل:</b> "+(selectedCustomer?escapeHtml(selectedCustomer.customer_name||selectedCustomer.full_name||selectedCustomer.name||"عميل"):"لم يتم الاختيار")+"<br>"+
     "<b>رقم الفاتورة:</b> "+escapeHtml($("invoiceNumber").value||"غير محدد")+"<br>"+
     "<b>التاريخ:</b> "+escapeHtml($("invoiceDate").value||"غير محدد")+"<br>"+
     "<b>الإجمالي:</b> "+escapeHtml($("invoiceTotal").value||"غير محدد")+" جنيه<br>"+
